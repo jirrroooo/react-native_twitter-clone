@@ -20,20 +20,38 @@ export default function HomeScreen({ navigation }) {
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-
+  const [page, setPage] = useState(1);
+  const [isAtEndOfScrolling, setIsAtEndOfScrolling] = useState(false);
+  const [lastPage, setLastPage] = useState(1);
+  const [onPageLoading, setOnPageLoading] = useState(false);
 
   useEffect(() => {
     getAllTweets();
-  }, []);
+  }, [page]);
 
   function getAllTweets() {
     axios
-      .get("http://localhost:8000/api/tweets")
+      .get(`http://localhost:8000/api/tweets?page=${page}`)
       .then((response) => {
-        console.log("Data Successfully Fetched");
-        setData(response.data);
+        if(page === 1){
+          setData(response.data.data);
+        }else if(page > 1 && response.data.next_page_url == null){
+          setData([...data, ...response.data.data]);
+        }else{
+          setIsAtEndOfScrolling(true);
+        }
+
+        setLastPage(response.data.last_page);
+
+        if(!response.data.next_page_url){
+          setIsAtEndOfScrolling(true);
+        }
+
         setIsLoading(false);
         setIsRefreshing(false);
+        console.log("Data Successfully Fetched");
+        console.log('page: ' + page);
+        console.log('data length: ' + data.length);
       })
       .catch((error) => {
         console.log(error);
@@ -43,8 +61,27 @@ export default function HomeScreen({ navigation }) {
   }
 
   function handleRefresh(){
+    setPage(1);
+    setIsAtEndOfScrolling(false);
     setIsRefreshing(true);
     getAllTweets();
+  }
+
+  function sleepFor(sleepDuration){
+    setOnPageLoading(true);
+    var now = new Date().getTime();
+    while(new Date().getTime() < now + sleepDuration){ 
+        /* Do nothing */ 
+    }
+    setOnPageLoading(false);
+
+}
+
+  function handleEnd(){
+    if(page != lastPage){
+      setPage(page + 1);
+    }
+    sleepFor(3000);
   }
 
   function gotoProfile() {
@@ -136,7 +173,7 @@ export default function HomeScreen({ navigation }) {
       {isLoading ? (
         <ActivityIndicator style={{ marginTop: 8 }} size="large" color="gray" />
       ) : (
-        <>
+        <View style={{flex: 1}}>
           <FlatList
             data={data}
             renderItem={renderItem}
@@ -146,6 +183,12 @@ export default function HomeScreen({ navigation }) {
             )}
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
+            onEndReached={() => {
+              onPageLoading ? '' : handleEnd()
+            }}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={() => !isAtEndOfScrolling &&
+              (<ActivityIndicator size="large" color="gray"/>)}
           />
           <TouchableOpacity
             style={styles.floatingButton}
@@ -153,7 +196,7 @@ export default function HomeScreen({ navigation }) {
           >
             <AntDesign name="plus" size={26} color="white" />
           </TouchableOpacity>
-        </>
+        </View>
       )}
     </View>
   );
