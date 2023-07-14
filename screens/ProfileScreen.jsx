@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,50 +7,74 @@ import {
   TouchableOpacity,
   Linking,
   FlatList,
-} from 'react-native';
-import { EvilIcons } from '@expo/vector-icons';
+  ActivityIndicator,
+} from "react-native";
+import { EvilIcons } from "@expo/vector-icons";
+import axiosConfig from "../helpers/axiosConfig";
+import { format } from "date-fns";
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ route, navigation }) {
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    getUserProfile();
+  }, []);
+
+  function getUserProfile() {
+    axiosConfig
+      .get(`/users/${route.params.userId}`)
+      .then((response) => {
+        setUser(response.data);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.log(error);
+        setIsLoading(false);
+        setIsRefreshing(false);
+      });
+  }
+
   const DATA = [
     {
-      id: '1',
-      title: 'First Item',
+      id: "1",
+      title: "First Item",
     },
     {
-      id: '2',
-      title: 'Second Item',
+      id: "2",
+      title: "Second Item",
     },
     {
-      id: '3',
-      title: 'Third Item',
+      id: "3",
+      title: "Third Item",
     },
     {
-      id: '4',
-      title: 'Fourth Item',
+      id: "4",
+      title: "Fourth Item",
     },
     {
-      id: '5',
-      title: 'Fifth Item',
+      id: "5",
+      title: "Fifth Item",
     },
     {
-      id: '6',
-      title: 'Sixth Item',
+      id: "6",
+      title: "Sixth Item",
     },
     {
-      id: '7',
-      title: 'Seventh Item',
+      id: "7",
+      title: "Seventh Item",
     },
     {
-      id: '8',
-      title: 'Eight Item',
+      id: "8",
+      title: "Eight Item",
     },
     {
-      id: '9',
-      title: 'Ninth Item',
+      id: "9",
+      title: "Ninth Item",
     },
     {
-      id: '10',
-      title: 'Tenth Item',
+      id: "10",
+      title: "Tenth Item",
     },
   ];
 
@@ -62,67 +86,73 @@ export default function ProfileScreen() {
 
   const ProfileHeader = () => (
     <View style={styles.container}>
-      <Image
-        style={styles.backgroundImage}
-        source={{
-          uri: 'https://images.unsplash.com/photo-1554034483-04fda0d3507b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80',
-        }}
-      />
-      <View style={styles.avatarContainer}>
-        <Image
-          style={styles.avatar}
-          source={{
-            uri: 'https://reactnative.dev/img/tiny_logo.png',
-          }}
-        />
-        <TouchableOpacity style={styles.followButton}>
-          <Text style={styles.followButtonText}>Follow</Text>
-        </TouchableOpacity>
-      </View>
+      {isLoading ? (
+        <ActivityIndicator style={{ marginTop: 8 }} size="large" color="gray" />
+      ) : (
+        <>
+          <Image
+            style={styles.backgroundImage}
+            source={{
+              uri: "https://images.unsplash.com/photo-1554034483-04fda0d3507b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
+            }}
+          />
+          <View style={styles.avatarContainer}>
+            <Image
+              style={styles.avatar}
+              source={{
+                uri: user.avatar,
+              }}
+            />
+            <TouchableOpacity style={styles.followButton}>
+              <Text style={styles.followButtonText}>Follow</Text>
+            </TouchableOpacity>
+          </View>
 
-      <View style={styles.nameContainer}>
-        <Text style={styles.profileName}>John Rommel Octavo</Text>
-        <Text style={styles.profileHandle}>@_jiro_</Text>
-      </View>
+          <View style={styles.nameContainer}>
+            <Text style={styles.profileName}>{user.name}</Text>
+            <Text style={styles.profileHandle}>@{user.username}</Text>
+          </View>
 
-      <View style={styles.profileContainer}>
-        <Text style={styles.profileContainerText}>
-          CEO of CEOs. PhD, MSc, SEO, HTML, CSS, JS Evangelist Pro Expert S Rank
-          Elite Best of the best.
-        </Text>
-      </View>
+          <View style={styles.profileContainer}>
+            <Text style={styles.profileContainerText}>
+              {user.profile}
+            </Text>
+          </View>
 
-      <View style={styles.locationContainer}>
-        <EvilIcons name="location" size={24} color="gray" />
-        <Text style={styles.textGray}>Albay, Philippines</Text>
-      </View>
+          <View style={styles.locationContainer}>
+            <EvilIcons name="location" size={24} color="gray" />
+            <Text style={styles.textGray}>{user.location}</Text>
+          </View>
 
-      <View style={styles.linkContainer}>
-        <TouchableOpacity
-          style={styles.linkItem}
-          onPress={() => Linking.openURL('https://crossandchrist.com')}
-        >
-          <EvilIcons name="link" size={24} color="gray" />
-          <Text style={styles.linkColor}>crossandchrist.com</Text>
-        </TouchableOpacity>
-        <View style={[styles.linkItem, styles.ml4]}>
-          <EvilIcons name="calendar" size={24} color="gray" />
-          <Text style={styles.textGray}>Joined July 2023</Text>
-        </View>
-      </View>
+          <View style={styles.linkContainer}>
+            <TouchableOpacity
+              style={styles.linkItem}
+              onPress={() => Linking.openURL(user.link)}
+            >
+              <EvilIcons name="link" size={24} color="gray" />
+              <Text style={styles.linkColor}>{user.linkText}</Text>
+            </TouchableOpacity>
+            <View style={[styles.linkItem, styles.ml4]}>
+              <EvilIcons name="calendar" size={24} color="gray" />
+              <Text style={styles.textGray}>Joined {
+              format(new Date(user.created_at), 'MMM yyyy')}</Text>
+            </View>
+          </View>
 
-      <View style={styles.followContainer}>
-        <View style={styles.followItem}>
-          <Text style={styles.followItemNumber}>509</Text>
-          <Text style={styles.followItemLabel}>Following</Text>
-        </View>
-        <View style={[styles.followItem, styles.ml4]}>
-          <Text style={styles.followItemNumber}>2,354</Text>
-          <Text style={styles.followItemLabel}>Followers</Text>
-        </View>
-      </View>
+          <View style={styles.followContainer}>
+            <View style={styles.followItem}>
+              <Text style={styles.followItemNumber}>509</Text>
+              <Text style={styles.followItemLabel}>Following</Text>
+            </View>
+            <View style={[styles.followItem, styles.ml4]}>
+              <Text style={styles.followItemNumber}>2,354</Text>
+              <Text style={styles.followItemLabel}>Followers</Text>
+            </View>
+          </View>
 
-      <View style={styles.separator}></View>
+          <View style={styles.separator}></View>
+        </>
+      )}
     </View>
   );
 
@@ -131,7 +161,7 @@ export default function ProfileScreen() {
       style={styles.container}
       data={DATA}
       renderItem={renderItem}
-      keyExtractor={item => item.id}
+      keyExtractor={(item) => item.id}
       ItemSeparatorComponent={() => <View style={styles.separator}></View>}
       ListHeaderComponent={ProfileHeader}
     />
@@ -140,23 +170,23 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   textGray: {
-    color: 'gray',
+    color: "gray",
   },
   ml4: {
     marginLeft: 16,
   },
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: "white",
   },
   backgroundImage: {
     width: 800,
     height: 120,
   },
   avatarContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
     paddingHorizontal: 10,
     marginTop: -34,
   },
@@ -165,28 +195,28 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     borderWidth: 4,
-    borderColor: 'white',
+    borderColor: "white",
   },
   followButton: {
-    backgroundColor: '#0f1418',
+    backgroundColor: "#0f1418",
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 24,
   },
   followButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
   },
   nameContainer: {
     paddingHorizontal: 10,
     paddingVertical: 2,
   },
   profileName: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 22,
   },
   profileHandle: {
-    color: 'gray',
+    color: "gray",
     marginTop: 1,
   },
   profileContainer: {
@@ -197,37 +227,37 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   locationContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: 10,
     marginTop: 12,
   },
   linkContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: 10,
     marginTop: 4,
   },
   linkColor: {
-    color: '#1d9bf1',
+    color: "#1d9bf1",
   },
   linkItem: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   followContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: 10,
     paddingVertical: 12,
   },
   followItem: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   followItemNumber: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   followItemLabel: {
     marginLeft: 4,
   },
   separator: {
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: "#E5E7EB",
   },
 });
