@@ -75,7 +75,6 @@ export default function HomeScreen({ navigation }) {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.tweetContainer}
           onPress={() => gotoSingleTweet()}
         >
           <Text style={styles.tweetContent}>{tweet.body}</Text>
