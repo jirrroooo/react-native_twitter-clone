@@ -10,11 +10,11 @@ import {
 import { FlatList } from "react-native-gesture-handler";
 import { EvilIcons } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
-import axios from "axios";
 import { formatDistanceToNowStrict } from "date-fns";
 import locale from "date-fns/locale/en-US";
 import formatDistance from "../helpers/formatDistanceCustom";
 import { ActivityIndicator } from "react-native-web";
+import axiosConfig from '../helpers/axiosConfig';
 
 export default function HomeScreen({ navigation }) {
   const [data, setData] = useState([]);
@@ -25,13 +25,14 @@ export default function HomeScreen({ navigation }) {
   const [lastPage, setLastPage] = useState(1);
   const [onPageLoading, setOnPageLoading] = useState(false);
 
+
   useEffect(() => {
     getAllTweets();
   }, [page]);
 
   function getAllTweets() {
-    axios
-      .get(`http://localhost:8000/api/tweets?page=${page}`)
+    axiosConfig
+      .get(`/tweets?page=${page}`)
       .then((response) => {
         if(page === 1){
           setData(response.data.data);
@@ -88,8 +89,10 @@ export default function HomeScreen({ navigation }) {
     navigation.navigate("Profile Screen");
   }
 
-  function gotoSingleTweet() {
-    navigation.navigate("Tweet Screen");
+  function gotoSingleTweet(tweetId) {
+    navigation.navigate("Tweet Screen", {
+      tweetId: tweetId
+    });
   }
 
   function gotoNewTweet() {
@@ -105,7 +108,7 @@ export default function HomeScreen({ navigation }) {
       <View style={{ flex: 1 }}>
         <TouchableOpacity
           style={styles.flexRow}
-          onPress={() => gotoSingleTweet()}
+          onPress={() => gotoSingleTweet(tweet.id)}
         >
           <Text numberOfLines={1} style={styles.tweetName}>
             {tweet.user.name}
@@ -124,7 +127,7 @@ export default function HomeScreen({ navigation }) {
             })}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => gotoSingleTweet()}>
+        <TouchableOpacity onPress={() => gotoSingleTweet(tweet.id)}>
           <Text style={styles.tweetContent}>{tweet.body}</Text>
         </TouchableOpacity>
         <View style={styles.tweetEngagement}>
