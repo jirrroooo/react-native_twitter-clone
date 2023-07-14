@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,50 +10,29 @@ import {
 import { FlatList } from "react-native-gesture-handler";
 import { EvilIcons } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
+import axios from "axios";
+import { formatDistanceToNowStrict } from "date-fns";
+import locale from "date-fns/locale/en-US";
+import formatDistance from "../helpers/formatDistanceCustom";
 
 export default function HomeScreen({ navigation }) {
-  const DATA = [
-    {
-      id: "1",
-      title: "First Item",
-    },
-    {
-      id: "2",
-      title: "Second Item",
-    },
-    {
-      id: "3",
-      title: "Third Item",
-    },
-    {
-      id: "4",
-      title: "Fourth Item",
-    },
-    {
-      id: "5",
-      title: "Fifth Item",
-    },
-    {
-      id: "6",
-      title: "Sixth Item",
-    },
-    {
-      id: "7",
-      title: "Seventh Item",
-    },
-    {
-      id: "8",
-      title: "Eight Item",
-    },
-    {
-      id: "9",
-      title: "Ninth Item",
-    },
-    {
-      id: "10",
-      title: "Tenth Item",
-    },
-  ];
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    getAllTweets();
+  }, []);
+
+  function getAllTweets() {
+    axios
+      .get("http://localhost:8000/api/tweets")
+      .then((response) => {
+        console.log("Data Successfully Fetched");
+        setData(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
 
   function gotoProfile() {
     navigation.navigate("Profile Screen");
@@ -63,17 +42,14 @@ export default function HomeScreen({ navigation }) {
     navigation.navigate("Tweet Screen");
   }
 
-  function gotoNewTweet(){
-    navigation.navigate('New Tweet');
+  function gotoNewTweet() {
+    navigation.navigate("New Tweet");
   }
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item: tweet }) => (
     <View style={styles.tweetContainer}>
       <TouchableOpacity onPress={() => gotoProfile()}>
-        <Image
-          style={styles.avatar}
-          source={{ uri: "https://reactnative.dev/img/tiny_logo.png" }}
-        />
+        <Image style={styles.avatar} source={{ uri: tweet.user.avatar }} />
       </TouchableOpacity>
 
       <View style={{ flex: 1 }}>
@@ -82,25 +58,27 @@ export default function HomeScreen({ navigation }) {
           onPress={() => gotoSingleTweet()}
         >
           <Text numberOfLines={1} style={styles.tweetName}>
-            {item.title}
+            {tweet.user.name}
           </Text>
           <Text numberOfLines={1} style={styles.tweetHandle}>
-            @_jiro_
+            @{tweet.user.username}
           </Text>
           <Text>&middot;</Text>
           <Text numberOfLines={1} style={styles.tweetHandle}>
-            2m
+            {/* {formatDistanceToNowStrict(new Date(tweet.created_at))} */}
+            {formatDistanceToNowStrict(new Date(tweet.created_at), {
+              locale: {
+                ...locale,
+                formatDistance,
+              },
+            })}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.tweetContainer}
           onPress={() => gotoSingleTweet()}
         >
-          <Text style={styles.tweetContent}>
-            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Eligendi
-            aliquid doloribus, quae voluptas corrupti fugit minus temporibus eum
-            tempore fuga?
-          </Text>
+          <Text style={styles.tweetContent}>{tweet.body}</Text>
         </TouchableOpacity>
         <View style={styles.tweetEngagement}>
           <TouchableOpacity style={styles.flexRow}>
@@ -146,7 +124,7 @@ export default function HomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <FlatList
-        data={DATA}
+        data={data}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         ItemSeparatorComponent={() => (
@@ -212,10 +190,10 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#1d9bf1',
-    position: 'absolute',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#1d9bf1",
+    position: "absolute",
     bottom: 20,
     right: 12,
   },
