@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,13 +6,39 @@ import {
   TouchableOpacity,
   Image,
   TextInput,
-} from 'react-native';
+  ActivityIndicator,
+  Alert,
+} from "react-native";
+import axiosConfig from "../helpers/axiosConfig";
 
 export default function NewTweet({ navigation }) {
-  const [tweet, setTweet] = useState('');
+  const [tweet, setTweet] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   function sendTweet() {
-    navigation.navigate('Tab');
+    if (tweet.length === 0) {
+      Alert.alert("Please enter a tweet");
+      return;
+    }
+
+    setIsLoading(true);
+    
+    axiosConfig
+      .post(`/tweets/`, {
+        body: tweet,
+      })
+      .then((response) => {
+        navigation.navigate("Home1", {
+          newTweetAdded: response.data,
+        });
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.log(error);
+        setIsLoading(false);
+      });
+
+    navigation.navigate("Tab");
   }
 
   return (
@@ -21,19 +47,30 @@ export default function NewTweet({ navigation }) {
         <Text style={tweet.length > 250 ? styles.textRed : styles.textGray}>
           Characters left: {280 - tweet.length}
         </Text>
-        <TouchableOpacity
-          style={styles.tweetButton}
-          onPress={() => sendTweet()}
-        >
-          <Text style={styles.tweetButtonText}>Tweet</Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          {isLoading && (
+            <ActivityIndicator
+              size="small"
+              color="gray"
+              style={{ marginRight: 8 }}
+            />
+          )}
+
+          <TouchableOpacity
+            style={styles.tweetButton}
+            onPress={() => sendTweet()}
+            disabled={isLoading}
+          >
+            <Text style={styles.tweetButtonText}>Tweet</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.tweetBoxContainer}>
         <Image
           style={styles.avatar}
           source={{
-            uri: 'https://reactnative.dev/img/tiny_logo.png',
+            uri: "https://reactnative.dev/img/tiny_logo.png",
           }}
         />
         <TextInput
@@ -52,39 +89,39 @@ export default function NewTweet({ navigation }) {
 
 const styles = StyleSheet.create({
   textGray: {
-    color: 'gray',
+    color: "gray",
   },
   textRed: {
-    color: 'red',
+    color: "red",
   },
   ml4: {
     marginLeft: 16,
   },
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     paddingVertical: 12,
     paddingHorizontal: 10,
   },
   tweetButtonContainer: {
     paddingVertical: 4,
     paddingHorizontal: 6,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   tweetButton: {
-    backgroundColor: '#1d9bf1',
+    backgroundColor: "#1d9bf1",
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 24,
   },
   tweetButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
   },
   tweetBoxContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingTop: 10,
   },
   avatar: {

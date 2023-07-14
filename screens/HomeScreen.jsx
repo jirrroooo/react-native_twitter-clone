@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -16,7 +16,7 @@ import formatDistance from "../helpers/formatDistanceCustom";
 import { ActivityIndicator } from "react-native-web";
 import axiosConfig from '../helpers/axiosConfig';
 
-export default function HomeScreen({ navigation }) {
+export default function HomeScreen({ route, navigation }) {
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -24,11 +24,40 @@ export default function HomeScreen({ navigation }) {
   const [isAtEndOfScrolling, setIsAtEndOfScrolling] = useState(false);
   const [lastPage, setLastPage] = useState(1);
   const [onPageLoading, setOnPageLoading] = useState(false);
-
+  const flatListRef = useRef();
 
   useEffect(() => {
     getAllTweets();
   }, [page]);
+
+  useEffect(() => {
+    if(route.params?.newTweetAdded){
+      getAllTweetsRefresh();
+      flatListRef.current.scrollToOffset({
+        offset: 0,
+      })
+    }
+  }, [route.params?.newTweetAdded]);
+
+  function getAllTweetsRefresh(){
+    setPage(1);
+    setIsAtEndOfScrolling(false);
+    setIsRefreshing(false);
+
+    axiosConfig
+      .get(`/tweets`)
+      .then((response) => {
+        setData(response.data.data);
+
+        setIsLoading(false);
+        setIsRefreshing(false);
+      })
+      .catch((error) => {
+        console.log(error);
+        setIsLoading(false);
+        setIsRefreshing(false);
+      });
+  }
 
   function getAllTweets() {
     axiosConfig
@@ -68,21 +97,21 @@ export default function HomeScreen({ navigation }) {
     getAllTweets();
   }
 
-  function sleepFor(sleepDuration){
-    setOnPageLoading(true);
-    var now = new Date().getTime();
-    while(new Date().getTime() < now + sleepDuration){ 
-        /* Do nothing */ 
-    }
-    setOnPageLoading(false);
+  // function sleepFor(sleepDuration){
+  //   setOnPageLoading(true);
+  //   var now = new Date().getTime();
+  //   while(new Date().getTime() < now + sleepDuration){ 
+  //       /* Do nothing */ 
+  //   }
+  //   setOnPageLoading(false);
 
-}
+  // }
 
   function handleEnd(){
     if(page != lastPage){
       setPage(page + 1);
     }
-    sleepFor(3000);
+    // sleepFor(3000);
   }
 
   function gotoProfile() {
@@ -178,6 +207,7 @@ export default function HomeScreen({ navigation }) {
       ) : (
         <View style={{flex: 1}}>
           <FlatList
+            ref={flatListRef}
             data={data}
             renderItem={renderItem}
             keyExtractor={(item) => item.id.toString()}
@@ -186,9 +216,7 @@ export default function HomeScreen({ navigation }) {
             )}
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            onEndReached={() => {
-              onPageLoading ? '' : handleEnd()
-            }}
+            onEndReached={handleEnd}
             onEndReachedThreshold={0.5}
             ListFooterComponent={() => !isAtEndOfScrolling &&
               (<ActivityIndicator size="large" color="gray"/>)}
