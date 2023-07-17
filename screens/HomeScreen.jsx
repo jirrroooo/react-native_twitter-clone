@@ -56,9 +56,9 @@ export default function HomeScreen({ route, navigation }) {
       .then((response) => {
         if (page === 1) {
           setData(response.data.data);
-        } else if (page > 1 && response.data.next_page_url == null) {
+        } else if (page > 1) {
           setData([...data, ...response.data.data]);
-        } else {
+        } else if(response.data.next_page_url == null){
           setIsAtEndOfScrolling(true);
         }
 

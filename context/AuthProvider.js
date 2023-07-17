@@ -8,7 +8,7 @@ export const AuthContext = createContext();
 export const AuthProvider = ({children}) => {
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <AuthContext.Provider
@@ -39,7 +39,8 @@ export const AuthProvider = ({children}) => {
                 setIsLoading(false);
             }).catch(error => {
                 console.log(error.response);
-                setError(error.response.data.message);
+                const key = Object.keys(error.response.data.errors)[0];
+                setError(error.response.data.errors[key][0]);
                 setIsLoading(false);
             });
         },
