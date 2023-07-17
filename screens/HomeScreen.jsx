@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
 import { AntDesign } from "@expo/vector-icons";
-import { ActivityIndicator } from "react-native-web";
+import { ActivityIndicator } from "react-native";
 import axiosConfig from "../helpers/axiosConfig";
 
 import RenderItem from "../components/RenderItem";

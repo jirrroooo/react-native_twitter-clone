@@ -1,8 +1,6 @@
 import "react-native-gesture-handler";
 import { NavigationContainer } from "@react-navigation/native";
-import "react-native-gesture-handler";
-import { StatusBar } from "expo-status-bar";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createDrawerNavigator } from "@react-navigation/drawer";
@@ -14,10 +12,11 @@ import SettingsScreen from "./screens/SettingsScreen";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import SearchScreen from "./screens/SearchScreen";
 import NotificationScreen from "./screens/NotificationScreen";
-import { AuthContext, AuthProvider } from "./context/AuthProvider";
+import { AuthContext } from "./context/AuthProvider";
 import { useContext, useEffect, useState } from "react";
 import LoginScreen from "./screens/Auth/LoginScreen";
 import RegisterScreen from "./screens/Auth/RegisterScreen";
+import * as SecureStore from 'expo-secure-store';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -114,15 +113,24 @@ export default function App() {
   useEffect(() => {
     // check if the user is logged in or not
     // check SecureStore for the user object/token
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
+
+    SecureStore.getItemAsync('user')
+      .then(userString => {
+        if(userString){
+          setUser('Jiro');
+        }
+        setIsLoading(false);
+      }).catch(err => {
+        console.log(err);
+        setIsLoading(false);
+      })
+
   }, []);
 
   if (isLoading) {
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <ActivityIndicator size="large" color="gray" />
+        <ActivityIndicator size="large" color="grey" />
       </View>
     );
   }

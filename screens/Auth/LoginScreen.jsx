@@ -1,12 +1,12 @@
 import React, {useContext, useState } from "react";
-import { Button, Text, View } from "react-native";
+import { ActivityIndicator, Button, Text, View } from "react-native";
 import { TextInput } from "react-native-gesture-handler";
 import { AuthContext } from "../../context/AuthProvider";
 
 export default function LoginScreen({navigation}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const {login} = useContext(AuthContext);
+  const {login, error, isLoading} = useContext(AuthContext);
 
   return (
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
@@ -32,6 +32,10 @@ export default function LoginScreen({navigation}) {
       title="Login" />
       <Button onPress={() => navigation.navigate('Register Screen')}
       title="Go to Register Screen" />
+      {error && <Text style={{color: 'red'}}>{error}</Text>}
+      {isLoading && (
+        <ActivityIndicator style={{marginTop:8}} size="small" color="gray" />
+      )}
     </View>
   );
 }

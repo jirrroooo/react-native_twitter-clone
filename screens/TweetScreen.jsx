@@ -6,7 +6,7 @@ import { Entypo } from "@expo/vector-icons";
 import { Image } from "react-native";
 import { EvilIcons } from "@expo/vector-icons";
 import { Platform } from "react-native";
-import { ActivityIndicator } from "react-native-web";
+import { ActivityIndicator } from "react-native";
 import axiosConfig from "../helpers/axiosConfig";
 import { format } from "date-fns";
 
