@@ -53,7 +53,9 @@ export const AuthProvider = ({children}) => {
                 setError(null);
                 setIsLoading(false);
             }).catch(error => {
-                console.log(error.response);
+                console.log(error);
+                setUser(null);
+                SecureStore.deleteItemAsync('user');
                 setError(error.response.data.message);
                 setIsLoading(false);
             });
