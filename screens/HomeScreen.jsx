@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
-import { FlatList } from "react-native-gesture-handler";
+import { FlatList, RefreshControl } from "react-native-gesture-handler";
 import { AntDesign } from "@expo/vector-icons";
 import { ActivityIndicator } from "react-native";
 import axiosConfig from "../helpers/axiosConfig";
@@ -62,15 +62,13 @@ export default function HomeScreen({ route, navigation }) {
       .then((response) => {
         if (page === 1) {
           setData(response.data.data);
-        } else if (page > 1) {
+        } else {
           setData([...data, ...response.data.data]);
-        } else if(response.data.next_page_url == null){
-          setIsAtEndOfScrolling(true);
         }
 
         setLastPage(response.data.last_page);
 
-        if (!response.data.next_page_url) {
+        if (response.data.next_page_url == null) {
           setIsAtEndOfScrolling(true);
         }
 
@@ -201,8 +199,9 @@ export default function HomeScreen({ route, navigation }) {
             ItemSeparatorComponent={() => (
               <View style={styles.tweetSeparator}></View>
             )}
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
+            refreshControl={
+              <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+            }
             onEndReached={handleEnd}
             onEndReachedThreshold={0.5}
             ListFooterComponent={() =>

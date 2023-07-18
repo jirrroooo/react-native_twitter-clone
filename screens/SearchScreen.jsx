@@ -198,8 +198,11 @@ export default function SearchScreen({ route, navigation }) {
             ItemSeparatorComponent={() => (
               <View style={styles.tweetSeparator}></View>
             )}
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
+            // refreshing={isRefreshing}
+            // onRefresh={handleRefresh}
+            refreshControl={
+              <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+            }
             onEndReached={handleEnd}
             onEndReachedThreshold={0.5}
             ListFooterComponent={() =>

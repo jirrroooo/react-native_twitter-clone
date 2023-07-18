@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,11 +8,13 @@ import {
   Linking,
   FlatList,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { EvilIcons } from "@expo/vector-icons";
 import axiosConfig from "../helpers/axiosConfig";
 import { format } from "date-fns";
 import RenderItem from "../components/RenderItem";
+import { AuthContext } from "../context/AuthProvider";
 
 export default function ProfileScreen({ route, navigation }) {
   const [user, setUser] = useState(null);
@@ -23,11 +25,68 @@ export default function ProfileScreen({ route, navigation }) {
   const [page, setPage] = useState(1);
   const [isAtEndOfScrolling, setIsAtEndOfScrolling] = useState(false);
   const [lastPage, setLastPage] = useState(1);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const { user: userFromContext } = useContext(AuthContext);
 
   useEffect(() => {
     getUserProfile();
     getUserTweets();
   }, [page]);
+
+  useEffect(() => {
+    getIsFollowing();
+  }, []);
+
+  function getIsFollowing() {
+    axiosConfig.defaults.headers.common[
+      "Authorization"
+    ] = `Bearer ${userFromContext.token}`;
+
+    axiosConfig
+      .get(`/is_following/${route.params.userId}`)
+      .then((response) => {
+        // setIsLoading(false);
+        setIsFollowing(response.data);
+      })
+      .catch((error) => {
+        console.log(error.response);
+        // setIsLoading(false);
+      });
+  }
+
+  function followUser(userId) {
+    axiosConfig.defaults.headers.common[
+      "Authorization"
+    ] = `Bearer ${userFromContext.token}`;
+
+    axiosConfig
+      .post(`/follow/${route.params.userId}`)
+      .then((response) => {
+        setIsFollowing(true);
+        Alert.alert("You are now following this user.");
+      })
+      .catch((error) => {
+        console.log(error.response);
+        // setIsLoading(false);
+      });
+  }
+
+  function unfollowUser(userId) {
+    axiosConfig.defaults.headers.common[
+      "Authorization"
+    ] = `Bearer ${userFromContext.token}`;
+
+    axiosConfig
+      .post(`/unfollow/${route.params.userId}`)
+      .then((response) => {
+        setIsFollowing(false);
+        Alert.alert("You are now unfollowing this user.");
+      })
+      .catch((error) => {
+        console.log(error.response);
+        // setIsLoading(false);
+      });
+  }
 
   function getUserProfile() {
     axiosConfig
@@ -107,9 +166,26 @@ export default function ProfileScreen({ route, navigation }) {
                 uri: user.avatar,
               }}
             />
-            <TouchableOpacity style={styles.followButton}>
-              <Text style={styles.followButtonText}>Follow</Text>
-            </TouchableOpacity>
+
+            {userFromContext.id !== route.params.userId && (
+              <View>
+                {isFollowing ? (
+                  <TouchableOpacity
+                    style={styles.followButton}
+                    onPress={() => unfollowUser(route.params.userId)}
+                  >
+                    <Text style={styles.followButtonText}>Unfollow</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.followButton}
+                    onPress={() => followUser(route.params.userId)}
+                  >
+                    <Text style={styles.followButtonText}>Follow</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
           </View>
 
           <View style={styles.nameContainer}>
@@ -179,7 +255,7 @@ export default function ProfileScreen({ route, navigation }) {
               <ActivityIndicator size="large" color="gray" />
             )
           }
-          scrollIndicatorInsets={{right: 1}}
+          scrollIndicatorInsets={{ right: 1 }}
         />
       )}
     </View>
